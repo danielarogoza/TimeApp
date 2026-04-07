@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Time App</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── DARK MODE TOKENS (default) ── */
+  :root {
+    --bg:          #212121;
+    --bg-pause:    #623ECF;
+    --fg:          #ffffff;
+    --fg-muted:    #bbb;
+    --fg-subtle:   #aaa;
+    --sep-color:   #666;
+    --shadow-a:    rgba(0,0,0,0.7);
+    --shadow-b:    rgba(0,0,0,0.9);
+    --ripple:      rgba(255,255,255,0.07);
+    --tap-col:     rgba(255,255,255,0.07);
+    --confirm-bg:  #ffffff;
+    --confirm-fg:  #212121;
+    --hint-col:    #ffffff;
+    --mono: 'Bebas Neue', sans-serif;
+  }
+
+  /* ── LIGHT MODE TOKENS ── */
+  :root.light {
+    --bg:          #ffffff;
+    --bg-pause:    #623ECF;   /* purple stays identical */
+    --fg:          #000000;
+    --fg-muted:    #888;
+    --fg-subtle:   #999;
+    --sep-color:   #bbb;
+    --shadow-a:    rgba(0,0,0,0.10);
+    --shadow-b:    rgba(0,0,0,0.16);
+    --ripple:      rgba(0,0,0,0.05);
+    --tap-col:     rgba(0,0,0,0.05);
+    --confirm-bg:  #000000;
+    --confirm-fg:  #ffffff;
+    --hint-col:    #000000;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.35s ease;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+  body.paused { background: var(--bg-pause); }
+
+  /* ── THEME SWITCH ── */
+  #theme-switch {
+    position: fixed;
+    top: 18px; right: 20px;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .switch-track {
+    width: 44px; height: 24px;
+    border-radius: 12px;
+    background: #555;
+    position: relative;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  :root.light .switch-track { background: #ccc; }
+
+  .switch-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.3s, background 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  }
+  :root.light .switch-thumb {
+    transform: translateX(20px);
+    background: #333;
+  }
+
+  .switch-icon { width: 20px; height: 20px; display: flex; align-items: center; pointer-events: none; flex-shrink: 0; }
+  .switch-icon svg { width: 20px; height: 20px; display: block; transition: fill 0.35s; }
+  .icon-moon, .icon-sun { fill: var(--fg); transition: fill 0.35s; }
+
+  /* ── MAIN TIMER ── */
+  #timer {
+    font-family: var(--mono);
+    font-size: clamp(80px, 22vw, 220px);
+    color: var(--fg);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-shadow: 0 4px 24px var(--shadow-a), 0 2px 8px var(--shadow-b);
+    user-select: none;
+    transition: color 0.35s, text-shadow 0.35s;
+  }
+  #timer.hidden { display: none; }
+
+  /* ── SET PANEL ── */
+  #set-panel {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  #set-panel.active { display: flex; }
+
+  #set-hint {
+    font-family: var(--mono);
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+    transition: color 0.35s;
+  }
+
+  #set-cols {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .set-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .set-btn {
+    background: none;
+    border: none;
+    color: var(--fg-muted);
+    cursor: pointer;
+    font-size: clamp(32px, 5vw, 52px);
+    font-family: var(--mono);
+    line-height: 1;
+    width: 2.2ch;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, transform 0.1s;
+    user-select: none;
+    padding: 2px 0;
+  }
+  .set-btn:hover  { color: var(--fg); }
+  .set-btn:active { transform: scale(0.88); }
+
+  .set-val {
+    font-family: var(--mono);
+    font-size: clamp(70px, 18vw, 180px);
+    width: 2.2ch;
+    background: none;
+    border: none;
+    border-bottom: 2px solid var(--sep-color);
+    color: var(--fg-muted);
+    text-align: center;
+    outline: none;
+    cursor: text;
+    transition: border-color 0.2s, color 0.2s;
+    padding: 0;
+    line-height: 1.05;
+    caret-color: var(--fg);
+    text-shadow: 0 4px 24px var(--shadow-a);
+    letter-spacing: 0.04em;
+  }
+  .set-val:focus { border-color: var(--fg); color: var(--fg); }
+  .set-val::-webkit-outer-spin-button,
+  .set-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .set-val[type=number] { -moz-appearance: textfield; }
+
+  .set-sep {
+    font-family: var(--mono);
+    font-size: clamp(70px, 18vw, 180px);
+    color: var(--sep-color);
+    line-height: 1;
+    margin-top: calc(clamp(32px, 5vw, 52px) + 10px);
+    text-shadow: 0 4px 24px var(--shadow-a);
+    transition: color 0.35s;
+  }
+
+  #set-confirm {
+    background: var(--confirm-bg);
+    color: var(--confirm-fg);
+    border: none;
+    padding: 12px 44px;
+    font-family: var(--mono);
+    font-size: 22px;
+    letter-spacing: 3px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity 0.2s, transform 0.1s, background 0.35s, color 0.35s;
+    margin-top: 8px;
+  }
+  #set-confirm:hover  { opacity: 0.8; }
+  #set-confirm:active { transform: scale(0.97); }
+
+  /* ── TAP HINTS ── */
+  #tap-hints {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 32px;
+    z-index: 10;
+    opacity: 0.3;
+    transition: opacity 0.4s, color 0.35s;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--hint-col);
+    white-space: nowrap;
+  }
+  body:hover #tap-hints { opacity: 0.6; }
+  #tap-hints.hidden { display: none; }
+  .hint { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .hint-dots { display: flex; gap: 4px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ── WARNING OVERLAY ── */
+  #warning-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    overflow: hidden;
+    transition: background 0.35s;
+  }
+  #warning-overlay.active { display: flex; }
+
+  #warning-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(90deg);
+    width: 100vh;
+    height: 100vw;
+    flex-shrink: 0;
+  }
+
+  #warning-number {
+    font-family: var(--mono);
+    font-size: clamp(160px, 40vh, 380px);
+    color: var(--fg);
+    line-height: 0.85;
+    text-shadow: 0 6px 40px var(--shadow-a), 0 2px 8px var(--shadow-b);
+    text-align: center;
+    transition: color 0.35s, text-shadow 0.35s;
+  }
+  #warning-number.fraction {
+    font-size: clamp(100px, 28vh, 260px);
+    display: flex;
+    align-items: flex-end;
+    line-height: 0.9;
+  }
+  .frac-slash { font-size: 1em; line-height: 0.85; margin: 0 -0.05em; }
+
+  #warning-label {
+    font-family: var(--mono);
+    font-size: clamp(36px, 10vh, 80px);
+    color: var(--fg);
+    letter-spacing: 0.08em;
+    text-shadow: 0 4px 24px var(--shadow-a), 0 2px 6px var(--shadow-b);
+    margin-top: 8px;
+    transition: color 0.35s, text-shadow 0.35s;
+  }
+
+  /* ── RIPPLE ── */
+  .ripple {
+    position: fixed; border-radius: 50%;
+    background: var(--ripple);
+    transform: scale(0);
+    animation: ripple-anim 0.5s ease-out forwards;
+    pointer-events: none; z-index: 5;
+  }
+  @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+  /* ── TAP COUNT ── */
+  #tap-count {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    font-family: var(--mono); font-size: 60px;
+    color: var(--tap-col);
+    pointer-events: none; z-index: 1; opacity: 0;
+  }
+  #tap-count.flash { animation: tap-flash 0.3s ease; }
+  @keyframes tap-flash {
+    0%  { opacity:0; transform:translate(-50%,-50%) scale(.8); }
+    40% { opacity:1; }
+    100%{ opacity:0; transform:translate(-50%,-50%) scale(1.2); }
+  }
+</style>
+</head>
+<body>
+
+<div id="tap-count"></div>
+
+<!-- Theme switch -->
+<label id="theme-switch" title="Cambiar modo">
+  <span class="switch-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path class="icon-moon" d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z"/></svg></span>
+  <div class="switch-track"><div class="switch-thumb"></div></div>
+  <span class="switch-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path class="icon-sun" d="M565-395q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Zm-226.5 56.5Q280-397 280-480t58.5-141.5Q397-680 480-680t141.5 58.5Q680-563 680-480t-58.5 141.5Q563-280 480-280t-141.5-58.5ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z"/></svg></span>
+</label>
+
+<!-- Main timer -->
+<div id="timer">00:00</div>
+
+<!-- SET panel -->
+<div id="set-panel">
+  <div id="set-hint">+ − o escribe directo</div>
+  <div id="set-cols">
+    <div class="set-group">
+      <button class="set-btn" id="btn-min-up">+</button>
+      <input class="set-val" id="inp-min" type="number" min="0" max="59" value="0">
+      <button class="set-btn" id="btn-min-dn">−</button>
+    </div>
+    <div class="set-sep">:</div>
+    <div class="set-group">
+      <button class="set-btn" id="btn-sec-up">+</button>
+      <input class="set-val" id="inp-sec" type="number" min="0" max="59" value="0">
+      <button class="set-btn" id="btn-sec-dn">−</button>
+    </div>
+  </div>
+  <button id="set-confirm">CONFIRMAR</button>
+</div>
+
+<!-- Warning overlay -->
+<div id="warning-overlay">
+  <div id="warning-inner">
+    <div id="warning-number">5</div>
+    <div id="warning-label">MIN</div>
+  </div>
+</div>
+
+<!-- Tap hints -->
+<div id="tap-hints">
+  <div class="hint"><div class="hint-dots"><div class="dot"></div></div><span>PLAY/PAUSA</span></div>
+  <div class="hint"><div class="hint-dots"><div class="dot"></div><div class="dot"></div></div><span>SET</span></div>
+  <div class="hint"><div class="hint-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>RESET</span></div>
+</div>
+
+<script>
+// ── STATE ──
+let totalSeconds = 0;
+let remaining    = 0;
+let running      = false;
+let interval     = null;
+let mode         = 'idle';
+let isLight      = false;
+
+let alerts = {};
+function resetAlerts() {
+  alerts = { half:false, min5:false, min2:false, min1:false };
+}
+resetAlerts();
+
+let warningTimer      = null;
+let warningMinExpired = false;
+let modeBeforeWarning = 'playing';
+
+let tapCount = 0, tapTimer = null;
+const TAP_WINDOW = 400;
+
+// ── DOM ──
+const timerEl        = document.getElementById('timer');
+const setPanel       = document.getElementById('set-panel');
+const warningOverlay = document.getElementById('warning-overlay');
+const warningNumber  = document.getElementById('warning-number');
+const warningLabel   = document.getElementById('warning-label');
+const setConfirm     = document.getElementById('set-confirm');
+const tapCountEl     = document.getElementById('tap-count');
+const tapHints       = document.getElementById('tap-hints');
+const inpMin         = document.getElementById('inp-min');
+const inpSec         = document.getElementById('inp-sec');
+const themeSwitch    = document.getElementById('theme-switch');
+
+// ── THEME ──
+themeSwitch.addEventListener('click', e => {
+  e.stopPropagation();
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+});
+
+// ── HELPERS ──
+function fmt(s) {
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+function clamp(v,mn,mx){ return Math.max(mn,Math.min(mx,v)); }
+function isLandscape() {
+  if (screen.orientation) return screen.orientation.type.startsWith('landscape');
+  return window.innerWidth > window.innerHeight;
+}
+
+// ── DISPLAY ──
+function updateDisplay() {
+  if (mode === 'set' || mode === 'warning') return;
+  timerEl.textContent = fmt(remaining);
+}
+
+function setMode(m) {
+  mode = m;
+  document.body.classList.remove('paused');
+  timerEl.classList.remove('hidden');
+  setPanel.classList.remove('active');
+  tapHints.classList.remove('hidden');
+
+  if (m === 'paused')  { document.body.classList.add('paused'); }
+  if (m === 'set')     { timerEl.classList.add('hidden'); setPanel.classList.add('active'); tapHints.classList.add('hidden'); }
+  if (m === 'warning') { tapHints.classList.add('hidden'); }
+}
+
+// ── TIMER ──
+function startTick() {
+  if (interval) clearInterval(interval);
+  interval = setInterval(() => {
+    if (remaining <= 0) {
+      clearInterval(interval); running = false;
+      remaining = 0; updateDisplay(); setMode('idle'); return;
+    }
+    remaining--;
+    updateDisplay();
+    checkAlerts();
+  }, 1000);
+}
+
+function play()  {
+  if (remaining <= 0) return;
+  running = true; setMode('playing'); startTick();
+}
+function pause() {
+  running = false; clearInterval(interval); setMode('paused');
+}
+function doReset() {
+  clearInterval(interval); running = false;
+  remaining = totalSeconds; resetAlerts();
+  updateDisplay(); setMode('idle');
+}
+
+// ── ALERTS ──
+function checkAlerts() {
+  const half = Math.floor(totalSeconds / 2);
+  if (!alerts.half && totalSeconds >= 300 && remaining === half) {
+    alerts.half = true; triggerWarning('1/2', 'TIME', true);
+  } else if (!alerts.min5 && totalSeconds > 300 && remaining === 300) {
+    alerts.min5 = true; triggerWarning('5', 'MIN', false);
+  } else if (!alerts.min2 && remaining === 120) {
+    alerts.min2 = true; triggerWarning('2', 'MIN', false);
+  } else if (!alerts.min1 && remaining === 60) {
+    alerts.min1 = true; triggerWarning('1', 'MIN', false);
+  }
+}
+
+function triggerWarning(num, label, isFraction) {
+  modeBeforeWarning = running ? 'playing' : 'paused';
+  warningMinExpired = false;
+
+  if (isFraction) {
+    warningNumber.classList.add('fraction');
+    warningNumber.innerHTML = `<span>1</span><span class="frac-slash">/</span><span>2</span>`;
+  } else {
+    warningNumber.classList.remove('fraction');
+    warningNumber.textContent = num;
+  }
+  warningLabel.textContent = label;
+  warningOverlay.classList.add('active');
+  setMode('warning');
+
+  warningTimer = setTimeout(() => {
+    warningMinExpired = true;
+    tryCloseWarning();
+  }, 30000);
+}
+
+function tryCloseWarning() {
+  if (!warningMinExpired) return;
+  if (!isLandscape()) return;
+  closeWarning();
+}
+
+function closeWarning() {
+  clearTimeout(warningTimer);
+  warningOverlay.classList.remove('active');
+  if (running) setMode('playing');
+  else setMode(modeBeforeWarning === 'paused' ? 'paused' : 'idle');
+  updateDisplay();
+}
+
+function onOrientationChange() {
+  if (mode === 'warning' && isLandscape()) tryCloseWarning();
+}
+window.addEventListener('orientationchange', onOrientationChange);
+screen.orientation && screen.orientation.addEventListener('change', onOrientationChange);
+window.addEventListener('resize', onOrientationChange);
+
+// ── SET MODE ──
+function openSet() {
+  clearInterval(interval);
+  inpMin.value = pad2(Math.floor(totalSeconds / 60));
+  inpSec.value = pad2(totalSeconds % 60);
+  setMode('set');
+  setTimeout(() => inpMin.focus(), 60);
+}
+
+function confirmSet() {
+  const mins = clamp(parseInt(inpMin.value)||0, 0, 59);
+  const secs = clamp(parseInt(inpSec.value)||0, 0, 59);
+  totalSeconds = mins*60 + secs;
+  if (totalSeconds === 0) totalSeconds = 60;
+  remaining = totalSeconds;
+  resetAlerts();
+  setMode('idle');   // mode changes first so updateDisplay guard doesn't block
+  updateDisplay();
+}
+
+function pad2(v) { return String(clamp(v,0,59)).padStart(2,'0'); }
+
+document.getElementById('btn-min-up').addEventListener('click', e => { e.stopPropagation(); inpMin.value = pad2((parseInt(inpMin.value)||0)+1); });
+document.getElementById('btn-min-dn').addEventListener('click', e => { e.stopPropagation(); inpMin.value = pad2((parseInt(inpMin.value)||0)-1); });
+document.getElementById('btn-sec-up').addEventListener('click', e => { e.stopPropagation(); inpSec.value = pad2((parseInt(inpSec.value)||0)+1); });
+document.getElementById('btn-sec-dn').addEventListener('click', e => { e.stopPropagation(); inpSec.value = pad2((parseInt(inpSec.value)||0)-1); });
+
+[inpMin, inpSec].forEach(inp => {
+  inp.addEventListener('click', e => e.stopPropagation());
+  inp.addEventListener('focus', () => inp.select());
+  inp.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key==='ArrowUp')   { e.preventDefault(); inp.value = pad2((parseInt(inp.value)||0)+1); }
+    if (e.key==='ArrowDown') { e.preventDefault(); inp.value = pad2((parseInt(inp.value)||0)-1); }
+    if (e.key==='Enter') confirmSet();
+    if (e.key==='Tab' && inp===inpMin) { e.preventDefault(); inpSec.focus(); }
+  });
+  inp.addEventListener('input', e => {
+    e.stopPropagation();
+    let v = parseInt(inp.value);
+    if (isNaN(v)||v<0) { inp.value='00'; return; }
+    if (v>59) { inp.value='59'; return; }
+  });
+  inp.addEventListener('blur', () => { inp.value = pad2(parseInt(inp.value)||0); });
+});
+
+setConfirm.addEventListener('click', e => { e.stopPropagation(); confirmSet(); });
+
+// ── TAP HANDLING ──
+function rippleAt(x,y) {
+  const el = document.createElement('div');
+  el.className = 'ripple';
+  el.style.cssText = `width:200px;height:200px;left:${x-100}px;top:${y-100}px`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 600);
+}
+function flashTap(n) {
+  tapCountEl.textContent = '·'.repeat(n);
+  tapCountEl.classList.remove('flash');
+  void tapCountEl.offsetWidth;
+  tapCountEl.classList.add('flash');
+}
+
+document.body.addEventListener('click', e => {
+  if (e.target.closest('#set-panel') || e.target.closest('#theme-switch')) return;
+  if (mode === 'set' || mode === 'warning') return;
+
+  rippleAt(e.clientX, e.clientY);
+  tapCount++; flashTap(tapCount);
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => {
+    if      (tapCount === 1) { if (running) pause(); else play(); }
+    else if (tapCount === 2) { if (running) pause(); openSet(); }
+    else if (tapCount >= 3)  { doReset(); }
+    tapCount = 0;
+  }, TAP_WINDOW);
+});
+
+updateDisplay();
+</script>
+</body>
+</html>
