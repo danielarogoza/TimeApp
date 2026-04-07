@@ -104,7 +104,7 @@
   /* ── MAIN TIMER ── */
   #timer {
     font-family: var(--mono);
-    font-size: clamp(80px, 22vw, 220px);
+    font-size: clamp(120px, 42vw, 600px);
     color: var(--fg);
     letter-spacing: 0.02em;
     line-height: 1;
@@ -251,10 +251,18 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transform: rotate(90deg);
-    width: 100vh;
-    height: 100vw;
+    /* portrait: no rotation needed */
+    width: 100vw;
+    height: 100vh;
     flex-shrink: 0;
+  }
+  /* landscape: rotate content 90deg so it reads as portrait */
+  @media (orientation: landscape) {
+    #warning-inner {
+      transform: rotate(90deg);
+      width: 100vh;
+      height: 100vw;
+    }
   }
 
   #warning-number {
@@ -492,7 +500,6 @@ function triggerWarning(num, label, isFraction) {
 
 function tryCloseWarning() {
   if (!warningMinExpired) return;
-  if (!isLandscape()) return;
   closeWarning();
 }
 
@@ -504,12 +511,7 @@ function closeWarning() {
   updateDisplay();
 }
 
-function onOrientationChange() {
-  if (mode === 'warning' && isLandscape()) tryCloseWarning();
-}
-window.addEventListener('orientationchange', onOrientationChange);
-screen.orientation && screen.orientation.addEventListener('change', onOrientationChange);
-window.addEventListener('resize', onOrientationChange);
+// orientation change — no longer used to close warnings
 
 // ── SET MODE ──
 function openSet() {
@@ -576,7 +578,8 @@ function flashTap(n) {
 
 document.body.addEventListener('click', e => {
   if (e.target.closest('#set-panel') || e.target.closest('#theme-switch')) return;
-  if (mode === 'set' || mode === 'warning') return;
+  if (mode === 'set') return;
+  if (mode === 'warning') { if (warningMinExpired) closeWarning(); return; }
 
   rippleAt(e.clientX, e.clientY);
   tapCount++; flashTap(tapCount);
