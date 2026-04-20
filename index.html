@@ -67,40 +67,21 @@
     position: fixed;
     top: 18px; right: 20px;
     z-index: 300;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    width: 48px; height: 48px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-
-  .switch-track {
-    width: 44px; height: 24px;
-    border-radius: 12px;
-    background: #555;
-    position: relative;
-    transition: background 0.3s;
-    flex-shrink: 0;
-  }
-  :root.light .switch-track { background: #ccc; }
-
-  .switch-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: #fff;
-    transition: transform 0.3s, background 0.3s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-  }
-  :root.light .switch-thumb {
-    transform: translateX(20px);
-    background: #333;
-  }
-
-  .switch-icon { width: 20px; height: 20px; display: flex; align-items: center; pointer-events: none; flex-shrink: 0; }
-  .switch-icon svg { width: 20px; height: 20px; display: block; transition: fill 0.35s; }
-  .icon-moon, .icon-sun { fill: var(--fg); transition: fill 0.35s; }
+  #theme-switch svg { display: block; }
+  #icon-to-light { display: block; }
+  #icon-to-dark  { display: none; }
+  :root.light #icon-to-light { display: none; }
+  :root.light #icon-to-dark  { display: block; }
 
   /* ── MAIN TIMER ── */
   #timer {
@@ -213,45 +194,113 @@
   #set-confirm:hover  { opacity: 0.8; }
   #set-confirm:active { transform: scale(0.97); }
 
-  /* ── TAP HINTS ── */
-  #tap-hints {
+  /* ── HELP BUTTON ── */
+  #help-btn {
     position: fixed;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
+    top: 86px; right: 20px;
     z-index: 10;
-    opacity: 0.85;
-    transition: opacity 0.4s, color 0.35s;
-    color: var(--hint-col);
-    white-space: nowrap;
+    width: 48px; height: 48px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  body:hover #tap-hints { opacity: 1; }
-  #tap-hints.hidden { display: none; }
-  #hints-label {
+  #help-btn svg { display: block; }
+  #help-icon-dark  { display: block; }
+  #help-icon-light { display: none; }
+  :root.light #help-icon-dark  { display: none; }
+  :root.light #help-icon-light { display: block; }
+
+  /* ── HELP MODAL ── */
+  #help-overlay {
+    position: fixed; inset: 0;
+    z-index: 400;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #help-overlay.open {
+    pointer-events: all;
+    opacity: 1;
+  }
+  #help-backdrop {
+    position: absolute; inset: 0;
+    background: transparent;
+  }
+  #help-panel {
+    position: absolute;
+    top: 0; right: 0;
+    width: min(320px, 85vw);
+    height: 100%;
+    background: #ffffff;
+    box-shadow: -8px 0 32px rgba(0,0,0,0.6);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+    padding: 32px 28px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  :root.light #help-panel {
+    box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  }
+  #help-overlay.open #help-panel {
+    transform: translateX(0);
+  }
+  #help-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #212121;
+    line-height: 1;
+    padding: 4px;
+  }
+  #help-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: #212121;
+    margin: 0 0 8px 0;
+    letter-spacing: 1px;
+  }
+  #help-desc {
     font-family: 'Roboto Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--hint-col);
-    text-transform: none;
+    font-size: 15px;
+    color: #444;
+    margin: 0 0 28px 0;
+    line-height: 1.5;
   }
-  #hints-items {
+  .help-hint-row {
     display: flex;
     align-items: center;
     gap: 16px;
+    margin-bottom: 16px;
   }
-  .hint { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-  .hint span {
-    font-family: 'Roboto Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    text-transform: none;
+  .help-hint-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: #212121;
+    letter-spacing: 0.5px;
+    min-width: 90px;
   }
-  .hint-dots { display: flex; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .help-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .help-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #aaa;
+    flex-shrink: 0;
+  }
 
   /* ── WARNING OVERLAY ── */
   #warning-overlay {
@@ -343,7 +392,29 @@
   }
 </style>
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-X815MKTHP6"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X815MKTHP6">
+// ── HELP MODAL ──
+const helpBtn     = document.getElementById('help-btn');
+const helpOverlay = document.getElementById('help-overlay');
+const helpClose   = document.getElementById('help-close');
+const helpBackdrop= document.getElementById('help-backdrop');
+const helpPanel   = document.getElementById('help-panel');
+
+function openHelp() { helpOverlay.classList.add('open'); }
+function closeHelp() { helpOverlay.classList.remove('open'); }
+
+helpBtn.addEventListener('click', e => { e.stopPropagation(); openHelp(); });
+helpClose.addEventListener('click', e => { e.stopPropagation(); closeHelp(); });
+helpBackdrop.addEventListener('click', closeHelp);
+
+// Swipe right to close
+let swipeStartX = 0;
+helpPanel.addEventListener('touchstart', e => { swipeStartX = e.touches[0].clientX; }, { passive: true });
+helpPanel.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+  if (dx > 60) closeHelp();
+}, { passive: true });
+</script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -356,11 +427,16 @@
 <div id="tap-count"></div>
 
 <!-- Theme switch -->
-<label id="theme-switch" title="Cambiar modo">
-  <span class="switch-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path class="icon-moon" d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z"/></svg></span>
-  <div class="switch-track"><div class="switch-thumb"></div></div>
-  <span class="switch-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path class="icon-sun" d="M565-395q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Zm-226.5 56.5Q280-397 280-480t58.5-141.5Q397-680 480-680t141.5 58.5Q680-563 680-480t-58.5 141.5Q563-280 480-280t-141.5-58.5ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z"/></svg></span>
-</label>
+<button id="theme-switch" title="Cambiar modo" aria-label="Cambiar modo">
+  <span id="icon-to-light"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="1" y="1" width="46" height="46" rx="23" stroke="white" stroke-width="2"/>
+<path d="M23.9999 28.0002C25.111 28.0002 26.0555 27.6113 26.8333 26.8335C27.611 26.0557 27.9999 25.1113 27.9999 24.0002C27.9999 22.8891 27.611 21.9446 26.8333 21.1668C26.0555 20.3891 25.111 20.0002 23.9999 20.0002C22.8888 20.0002 21.9444 20.3891 21.1666 21.1668C20.3888 21.9446 19.9999 22.8891 19.9999 24.0002C19.9999 25.1113 20.3888 26.0557 21.1666 26.8335C21.9444 27.6113 22.8888 28.0002 23.9999 28.0002ZM23.9999 30.6668C22.1555 30.6668 20.5833 30.0168 19.2833 28.7168C17.9833 27.4168 17.3333 25.8446 17.3333 24.0002C17.3333 22.1557 17.9833 20.5835 19.2833 19.2835C20.5833 17.9835 22.1555 17.3335 23.9999 17.3335C25.8444 17.3335 27.4166 17.9835 28.7166 19.2835C30.0166 20.5835 30.6666 22.1557 30.6666 24.0002C30.6666 25.8446 30.0166 27.4168 28.7166 28.7168C27.4166 30.0168 25.8444 30.6668 23.9999 30.6668ZM14.6666 25.3335H9.33325V22.6668H14.6666V25.3335ZM38.6666 25.3335H33.3333V22.6668H38.6666V25.3335ZM22.6666 14.6668V9.3335H25.3333V14.6668H22.6666ZM22.6666 38.6668V33.3335H25.3333V38.6668H22.6666ZM16.5333 18.3335L13.1666 15.1002L15.0666 13.1335L18.2666 16.4668L16.5333 18.3335ZM32.9333 34.8668L29.6999 31.5002L31.4666 29.6668L34.8333 32.9002L32.9333 34.8668ZM29.6666 16.5335L32.8999 13.1668L34.8666 15.0668L31.5333 18.2668L29.6666 16.5335ZM13.1333 32.9335L16.4999 29.7002L18.3333 31.4668L15.0999 34.8335L13.1333 32.9335Z" fill="white"/>
+</svg></span>
+  <span id="icon-to-dark"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="1" y="1" width="46" height="46" rx="23" stroke="#212121" stroke-width="2"/>
+<path d="M24 36C20.6667 36 17.8333 34.8333 15.5 32.5C13.1667 30.1667 12 27.3333 12 24C12 20.6667 13.1667 17.8333 15.5 15.5C17.8333 13.1667 20.6667 12 24 12C24.3111 12 24.6167 12.0111 24.9167 12.0333C25.2167 12.0556 25.5111 12.0889 25.8 12.1333C24.8889 12.7778 24.1611 13.6167 23.6167 14.65C23.0722 15.6833 22.8 16.8 22.8 18C22.8 20 23.5 21.7 24.9 23.1C26.3 24.5 28 25.2 30 25.2C31.2222 25.2 32.3444 24.9278 33.3667 24.3833C34.3889 23.8389 35.2222 23.1111 35.8667 22.2C35.9111 22.4889 35.9444 22.7833 35.9667 23.0833C35.9889 23.3833 36 23.6889 36 24C36 27.3333 34.8333 30.1667 32.5 32.5C30.1667 34.8333 27.3333 36 24 36ZM24 33.3333C25.9556 33.3333 27.7111 32.7944 29.2667 31.7167C30.8222 30.6389 31.9556 29.2333 32.6667 27.5C32.2222 27.6111 31.7778 27.7 31.3333 27.7667C30.8889 27.8333 30.4444 27.8667 30 27.8667C27.2667 27.8667 24.9389 26.9056 23.0167 24.9833C21.0944 23.0611 20.1333 20.7333 20.1333 18C20.1333 17.5556 20.1667 17.1111 20.2333 16.6667C20.3 16.2222 20.3889 15.7778 20.5 15.3333C18.7667 16.0444 17.3611 17.1778 16.2833 18.7333C15.2056 20.2889 14.6667 22.0444 14.6667 24C14.6667 26.5778 15.5778 28.7778 17.4 30.6C19.2222 32.4222 21.4222 33.3333 24 33.3333Z" fill="#212121"/>
+</svg></span>
+</button>
 
 <!-- Main timer -->
 <div id="timer">00:00</div>
@@ -392,13 +468,31 @@
   </div>
 </div>
 
-<!-- Tap hints -->
-<div id="tap-hints">
-  <span id="hints-label">TAP HINTS:</span>
-  <div id="hints-items">
-    <div class="hint"><div class="hint-dots"><div class="dot"></div><div class="dot"></div></div><span>SET</span></div>
-    <div class="hint"><div class="hint-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>RESET</span></div>
-    <div class="hint"><div class="hint-dots"><div class="dot"></div></div><span>PLAY/PAUSE</span></div>
+<!-- Help button -->
+<button id="help-btn" aria-label="Help">
+  <span id="help-icon-dark"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="46" height="46" rx="23" stroke="white" stroke-width="2"/><path d="M22.375 34H25.625V30.6667H22.375V34ZM24 14C20.4087 14 17.5 16.9833 17.5 20.6667H20.75C20.75 18.8333 22.2125 17.3333 24 17.3333C25.7875 17.3333 27.25 18.8333 27.25 20.6667C27.25 24 22.375 23.5833 22.375 29H25.625C25.625 25.25 30.5 24.8333 30.5 20.6667C30.5 16.9833 27.5913 14 24 14Z" fill="white"/></svg></span>
+  <span id="help-icon-light"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="46" height="46" rx="23" stroke="#212121" stroke-width="2"/><path d="M22.375 34H25.625V30.6667H22.375V34ZM24 14C20.4087 14 17.5 16.9833 17.5 20.6667H20.75C20.75 18.8333 22.2125 17.3333 24 17.3333C25.7875 17.3333 27.25 18.8333 27.25 20.6667C27.25 24 22.375 23.5833 22.375 29H25.625C25.625 25.25 30.5 24.8333 30.5 20.6667C30.5 16.9833 27.5913 14 24 14Z" fill="#212121"/></svg></span>
+</button>
+
+<!-- Help modal -->
+<div id="help-overlay">
+  <div id="help-backdrop"></div>
+  <div id="help-panel">
+    <button id="help-close" aria-label="Cerrar">&#x2715;</button>
+    <h2 id="help-title">HELP &amp; HINTS</h2>
+    <p id="help-desc">Use taps in any place on the screen to configure and start the timer.</p>
+    <div class="help-hint-row">
+      <span class="help-hint-label">PLAY/PAUSE</span>
+      <div class="help-dots"><div class="help-dot"></div></div>
+    </div>
+    <div class="help-hint-row">
+      <span class="help-hint-label">SET</span>
+      <div class="help-dots"><div class="help-dot"></div><div class="help-dot"></div></div>
+    </div>
+    <div class="help-hint-row">
+      <span class="help-hint-label">RESET</span>
+      <div class="help-dots"><div class="help-dot"></div><div class="help-dot"></div><div class="help-dot"></div></div>
+    </div>
   </div>
 </div>
 
@@ -614,7 +708,7 @@ function flashTap(n) {
 }
 
 document.body.addEventListener('click', e => {
-  if (e.target.closest('#set-panel') || e.target.closest('#theme-switch')) return;
+  if (e.target.closest('#set-panel') || e.target.closest('#theme-switch') || e.target.closest('#help-btn') || e.target.closest('#help-overlay')) return;
   if (mode === 'set') return;
   if (mode === 'warning') { if (warningMinExpired) closeWarning(); return; }
 
