@@ -67,40 +67,26 @@
     position: fixed;
     top: 18px; right: 20px;
     z-index: 300;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    background: none;
+    border: none;
+    padding: 0;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    width: max(48px, 3rem);
+    height: max(48px, 3rem);
   }
-
-  .switch-track {
-    width: 44px; height: 24px;
-    border-radius: 12px;
-    background: #555;
-    position: relative;
-    transition: background 0.3s;
-    flex-shrink: 0;
-  }
-  :root.light .switch-track { background: #ccc; }
-
-  .switch-thumb {
+  #theme-switch svg {
     position: absolute;
-    top: 3px; left: 3px;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: #fff;
-    transition: transform 0.3s, background 0.3s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    top: 0; left: 0;
+    width: max(48px, 3rem);
+    height: max(48px, 3rem);
+    display: block;
+    transition: opacity 0.3s;
   }
-  :root.light .switch-thumb {
-    transform: translateX(20px);
-    background: #333;
-  }
-
-  .switch-icon { width: 20px; height: 20px; display: flex; align-items: center; pointer-events: none; flex-shrink: 0; }
-  .switch-icon svg { width: 20px; height: 20px; display: block; transition: fill 0.35s; }
-  .icon-moon, .icon-sun { fill: var(--fg); transition: fill 0.35s; }
+  #icon-to-light { opacity: 1; pointer-events: auto; }
+  #icon-to-dark  { opacity: 0; pointer-events: none; }
+  :root.light #icon-to-light { opacity: 0; pointer-events: none; }
+  :root.light #icon-to-dark  { opacity: 1; pointer-events: auto; }
 
   /* ── MAIN TIMER ── */
   #timer {
@@ -214,45 +200,6 @@
   #set-confirm:active { transform: scale(0.97); }
 
   /* ── TAP HINTS ── */
-  #tap-hints {
-    position: fixed;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-    z-index: 10;
-    opacity: 0.85;
-    transition: opacity 0.4s, color 0.35s;
-    color: var(--hint-col);
-    white-space: nowrap;
-  }
-  body:hover #tap-hints { opacity: 1; }
-  #tap-hints.hidden { display: none; }
-  #hints-label {
-    font-family: 'Roboto Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--hint-col);
-    text-transform: none;
-  }
-  #hints-items {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .hint { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-  .hint span {
-    font-family: 'Roboto Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    text-transform: none;
-  }
-  .hint-dots { display: flex; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-
   /* ── WARNING OVERLAY ── */
   #warning-overlay {
     position: fixed; inset: 0;
@@ -356,11 +303,25 @@
 <div id="tap-count"></div>
 
 <!-- Theme switch -->
-<label id="theme-switch" title="Cambiar modo">
-  <span class="switch-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path class="icon-moon" d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z"/></svg></span>
-  <div class="switch-track"><div class="switch-thumb"></div></div>
-  <span class="switch-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path class="icon-sun" d="M565-395q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Zm-226.5 56.5Q280-397 280-480t58.5-141.5Q397-680 480-680t141.5 58.5Q680-563 680-480t-58.5 141.5Q563-280 480-280t-141.5-58.5ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z"/></svg></span>
-</label>
+<button id="theme-switch" title="Cambiar modo" aria-label="Cambiar modo">
+  <!-- Shown in dark mode → switches to light -->
+  <svg id="icon-to-light" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="7" width="34" height="34" rx="17" stroke="white" stroke-width="2"/>
+    <g clip-path="url(#clip-light)">
+      <path d="M23.9999 26.5002C24.6944 26.5002 25.2846 26.2571 25.7708 25.771C26.2569 25.2849 26.4999 24.6946 26.4999 24.0002C26.4999 23.3057 26.2569 22.7154 25.7708 22.2293C25.2846 21.7432 24.6944 21.5002 23.9999 21.5002C23.3055 21.5002 22.7152 21.7432 22.2291 22.2293C21.743 22.7154 21.4999 23.3057 21.4999 24.0002C21.4999 24.6946 21.743 25.2849 22.2291 25.771C22.7152 26.2571 23.3055 26.5002 23.9999 26.5002ZM23.9999 28.1668C22.8471 28.1668 21.8645 27.7606 21.052 26.9481C20.2395 26.1356 19.8333 25.1529 19.8333 24.0002C19.8333 22.8474 20.2395 21.8647 21.052 21.0522C21.8645 20.2397 22.8471 19.8335 23.9999 19.8335C25.1527 19.8335 26.1353 20.2397 26.9478 21.0522C27.7603 21.8647 28.1666 22.8474 28.1666 24.0002C28.1666 25.1529 27.7603 26.1356 26.9478 26.9481C26.1353 27.7606 25.1527 28.1668 23.9999 28.1668ZM18.1666 24.8335H14.8333V23.1668H18.1666V24.8335ZM33.1666 24.8335H29.8333V23.1668H33.1666V24.8335ZM23.1666 18.1668V14.8335H24.8333V18.1668H23.1666ZM23.1666 33.1668V29.8335H24.8333V33.1668H23.1666ZM19.3333 20.4585L17.2291 18.4377L18.4166 17.2085L20.4166 19.2918L19.3333 20.4585ZM29.5833 30.7918L27.5624 28.6877L28.6666 27.5418L30.7708 29.5627L29.5833 30.7918ZM27.5416 19.3335L29.5624 17.2293L30.7916 18.4168L28.7083 20.4168L27.5416 19.3335ZM17.2083 29.5835L19.3124 27.5627L20.4583 28.6668L18.4374 30.771L17.2083 29.5835Z" fill="white"/>
+    </g>
+    <defs>
+      <clipPath id="clip-light">
+        <rect width="20" height="20" fill="white" transform="translate(14 14)"/>
+      </clipPath>
+    </defs>
+  </svg>
+  <!-- Shown in light mode → switches to dark -->
+  <svg id="icon-to-dark" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="7" width="34" height="34" rx="17" stroke="#212121" stroke-width="2"/>
+    <path d="M24 31.5C21.9167 31.5 20.1458 30.7708 18.6875 29.3125C17.2292 27.8542 16.5 26.0833 16.5 24C16.5 21.9167 17.2292 20.1458 18.6875 18.6875C20.1458 17.2292 21.9167 16.5 24 16.5C24.1944 16.5 24.3854 16.5069 24.5729 16.5208C24.7604 16.5347 24.9444 16.5556 25.125 16.5833C24.5556 16.9861 24.1007 17.5104 23.7604 18.1562C23.4201 18.8021 23.25 19.5 23.25 20.25C23.25 21.5 23.6875 22.5625 24.5625 23.4375C25.4375 24.3125 26.5 24.75 27.75 24.75C28.5139 24.75 29.2153 24.5799 29.8542 24.2396C30.4931 23.8993 31.0139 23.4444 31.4167 22.875C31.4444 23.0556 31.4653 23.2396 31.4792 23.4271C31.4931 23.6146 31.5 23.8056 31.5 24C31.5 26.0833 30.7708 27.8542 29.3125 29.3125C27.8542 30.7708 26.0833 31.5 24 31.5ZM24 29.8333C25.2222 29.8333 26.3194 29.4965 27.2917 28.8229C28.2639 28.1493 28.9722 27.2708 29.4167 26.1875C29.1389 26.2569 28.8611 26.3125 28.5833 26.3542C28.3056 26.3958 28.0278 26.4167 27.75 26.4167C26.0417 26.4167 24.5868 25.816 23.3854 24.6146C22.184 23.4132 21.5833 21.9583 21.5833 20.25C21.5833 19.9722 21.6042 19.6944 21.6458 19.4167C21.6875 19.1389 21.7431 18.8611 21.8125 18.5833C20.7292 19.0278 19.8507 19.7361 19.1771 20.7083C18.5035 21.6806 18.1667 22.7778 18.1667 24C18.1667 25.6111 18.7361 26.9861 19.875 28.125C21.0139 29.2639 22.3889 29.8333 24 29.8333Z" fill="#212121"/>
+  </svg>
+</button>
 
 <!-- Main timer -->
 <div id="timer">00:00</div>
@@ -392,13 +353,6 @@
   </div>
 </div>
 
-<!-- Tap hints -->
-<div id="tap-hints">
-  <span id="hints-label">TAP HINTS:</span>
-  <div id="hints-items">
-    <div class="hint"><div class="hint-dots"><div class="dot"></div><div class="dot"></div></div><span>SET</span></div>
-    <div class="hint"><div class="hint-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>RESET</span></div>
-    <div class="hint"><div class="hint-dots"><div class="dot"></div></div><span>PLAY/PAUSE</span></div>
   </div>
 </div>
 
@@ -432,7 +386,6 @@ const warningNumber  = document.getElementById('warning-number');
 const warningLabel   = document.getElementById('warning-label');
 const setConfirm     = document.getElementById('set-confirm');
 const tapCountEl     = document.getElementById('tap-count');
-const tapHints       = document.getElementById('tap-hints');
 const inpMin         = document.getElementById('inp-min');
 const inpSec         = document.getElementById('inp-sec');
 const themeSwitch    = document.getElementById('theme-switch');
@@ -465,11 +418,9 @@ function setMode(m) {
   document.body.classList.remove('paused');
   timerEl.classList.remove('hidden');
   setPanel.classList.remove('active');
-  tapHints.classList.remove('hidden');
-
   if (m === 'paused')  { document.body.classList.add('paused'); }
-  if (m === 'set')     { timerEl.classList.add('hidden'); setPanel.classList.add('active'); tapHints.classList.add('hidden'); }
-  if (m === 'warning') { tapHints.classList.add('hidden'); }
+  if (m === 'set')     { timerEl.classList.add('hidden'); setPanel.classList.add('active'); }
+  if (m === 'warning') { }
 }
 
 // ── TIMER ──
